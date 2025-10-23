@@ -39,7 +39,7 @@ public class LoginServiceImpl extends EgovAbstractServiceImpl implements LoginSe
     if (user != null && !user.getId().equals("")) {
       boolean passwordMatch = passwordEncoder.matches(vo.getPassword(), user.getPassword());
       if (passwordMatch) {
-        String jwtToken = jwtTokenUtil.generateToken(user);
+        String jwtToken = jwtTokenUtil.generateToken(user, vo.isRememberMe());
         return new LoginResponse(user, jwtToken);
       }
     }

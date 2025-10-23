@@ -27,6 +27,8 @@ public class JwtTokenUtil implements Serializable {
 	// public static final long JWT_TOKEN_VALIDITY = 24 * 60 * 60; //하루
 	public static final long JWT_TOKEN_VALIDITY = (long) ((1 * 60 * 60) / 60) * 60; // 토큰의 유효시간 설정, 기본 60분
 
+	public static final long LONG_JWT_TOKEN_VALIDITY = (long) ((1 * 60 * 60) / 60) * 60 * 24 * 30; // 로그인 유지 시, 30일
+
 	@Value("${jwt.secret}")
 	private String SECRET_KEY;
 
@@ -37,6 +39,11 @@ public class JwtTokenUtil implements Serializable {
 
 	public String getRoleFromToken(String token) {
 		return getInfoFromToken("role", token);
+	}
+
+	public Long getValidityFromToken(String token) {
+		Long validity = Long.valueOf(getInfoFromToken("validity", token));
+		return validity;
 	}
 
 	public String getInfoFromToken(String type, String token) {
@@ -51,15 +58,20 @@ public class JwtTokenUtil implements Serializable {
 		return claims;
 	}
 
+	public String getExpFromToken(String token) {
+		final Claims claims = getAllClaimsFromToken(token);
+		return claims.getExpiration().toString();
+	}
+
 	// for retrieveing any information from token we will need the secret key
 	public Claims getAllClaimsFromToken(String token) {
-		log.debug("===>>> secret = " + SECRET_KEY);
+		// log.debug("===>>> secret = " + SECRET_KEY);
 		return Jwts.parser().setSigningKey(SECRET_KEY).parseClaimsJws(token).getBody();
 	}
 
 	// generate token for user
-	public String generateToken(User user) {
-		return doGenerateToken(user, "Authorization");
+	public String generateToken(User user, boolean rememberMe) {
+		return doGenerateToken(user, "Authorization", rememberMe);
 	}
 
 	// while creating the token -
@@ -68,17 +80,20 @@ public class JwtTokenUtil implements Serializable {
 	// 3. According to JWS Compact
 	// Serialization(https://tools.ietf.org/html/draft-ietf-jose-json-web-signature-41#section-3.1)
 	// compaction of the JWT to a URL-safe string
-	private String doGenerateToken(User user, String subject) {
+	private String doGenerateToken(User user, String subject, boolean rememberMe) {
 
 		Map<String, Object> claims = new HashMap<>();
 		claims.put("id", user.getId());
 		claims.put("name", user.getName());
 		claims.put("role", user.getRole());
 		claims.put("type", subject);
+		claims.put("validity", rememberMe ? LONG_JWT_TOKEN_VALIDITY : JWT_TOKEN_VALIDITY);
 
 		// log.debug("===>>> secret = " + SECRET_KEY);
 		return Jwts.builder().setClaims(claims).setSubject(subject).setIssuedAt(new Date(System.currentTimeMillis()))
-				.setExpiration(new Date(System.currentTimeMillis() + JWT_TOKEN_VALIDITY * 1000))
+				.setExpiration(
+						new Date(System.currentTimeMillis() +
+								(rememberMe ? LONG_JWT_TOKEN_VALIDITY : JWT_TOKEN_VALIDITY) * 1000))
 				.signWith(SignatureAlgorithm.HS512, SECRET_KEY).compact();
 	}
 

@@ -1,6 +1,5 @@
 package egovframework.theimc.common.auth.service;
 
-import egovframework.theimc.api.user.entity.User;
 import egovframework.theimc.common.auth.model.LoginRequest;
 import egovframework.theimc.common.auth.model.LoginResponse;
 

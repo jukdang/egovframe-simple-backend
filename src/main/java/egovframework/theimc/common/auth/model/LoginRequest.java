@@ -9,4 +9,6 @@ public class LoginRequest {
 
   private String id;
   private String password;
+
+  private boolean rememberMe = false;
 }

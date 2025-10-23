@@ -30,7 +30,9 @@ public class LoginResponse {
     this.id = "";
     this.name = "";
     this.role = "";
+
     this.token = "";
+
     this.resultCode = "401";
     this.resultMessage = "아이디 또는 비밀번호가 일치하지 않습니다.";
   }

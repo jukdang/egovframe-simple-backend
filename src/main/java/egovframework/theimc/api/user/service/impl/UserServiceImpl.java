@@ -2,7 +2,6 @@ package egovframework.theimc.api.user.service.impl;
 
 import org.egovframe.rte.fdl.cmmn.EgovAbstractServiceImpl;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import egovframework.theimc.api.user.entity.User;
@@ -17,9 +16,6 @@ public class UserServiceImpl extends EgovAbstractServiceImpl implements UserServ
   @Autowired
   private UserRepository userRepository;
 
-  @Autowired
-  private PasswordEncoder passwordEncoder;
-
   @Override
   public ResultVO register(RegisterRequest request) {
     ResultVO result = new ResultVO();
@@ -30,11 +26,9 @@ public class UserServiceImpl extends EgovAbstractServiceImpl implements UserServ
       return result;
     }
 
-    String encodedPassword = passwordEncoder.encode(request.getPassword());
-
     User user = new User();
     user.setId(request.getId());
-    user.setPassword(encodedPassword);
+    user.setPassword(request.getPassword());
     user.setName(request.getName());
     user.setEmail(request.getEmail());
     user.setTelNo(request.getTelNo());
