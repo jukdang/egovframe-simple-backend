@@ -1,0 +1,109 @@
+plugins {
+    id 'org.springframework.boot' version '2.7.18'
+    id 'io.spring.dependency-management' version '1.0.15.RELEASE'
+    id 'java'
+}
+
+group = 'com.egov'
+version = '1.0.0'
+
+
+java {
+  sourceCompatibility = JavaVersion.VERSION_17
+  targetCompatibility = JavaVersion.VERSION_17
+}
+
+repositories {
+    mavenCentral()
+    maven {
+        url 'https://maven.egovframe.go.kr/maven/'
+        content {
+            includeGroup "org.egovframe.rte"
+        }
+    }
+}
+
+configurations {
+    all {
+        exclude group: 'org.springframework.boot', module: 'spring-boot-starter-logging'
+        exclude group: 'org.apache.logging.log4j', module: 'log4j-to-slf4j'
+    }
+    compileOnly {
+        extendsFrom annotationProcessor
+    }
+}
+
+ext {
+    springVersion = '5.3.37'
+    egovFrameVersion = '4.3.0'
+}
+
+dependencies {
+    // Logging
+    implementation 'org.springframework.boot:spring-boot-starter-log4j2'
+
+    // Spring Boot
+    implementation('org.springframework.boot:spring-boot-starter-web') {
+        exclude group: 'org.springframework.boot', module: 'spring-boot-starter-logging'
+    }
+    implementation 'org.springframework.boot:spring-boot-starter-thymeleaf'
+    implementation 'org.springframework.boot:spring-boot-starter-validation'
+    developmentOnly('org.springframework.boot:spring-boot-devtools') {
+        exclude group: 'org.springframework.boot', module: 'spring-boot-starter-logging'
+    }
+
+    // 전자정부프레임워크
+    implementation("org.egovframe.rte:org.egovframe.rte.ptl.mvc:${egovFrameVersion}") {
+        exclude group: 'commons-logging', module: 'commons-logging'
+    }
+    implementation "org.egovframe.rte:org.egovframe.rte.psl.dataaccess:${egovFrameVersion}"
+    implementation "org.egovframe.rte:org.egovframe.rte.fdl.idgnr:${egovFrameVersion}"
+    implementation "org.egovframe.rte:org.egovframe.rte.fdl.property:${egovFrameVersion}"
+
+    // JWT token
+    implementation 'io.jsonwebtoken:jjwt:0.9.1'
+
+    // Database
+    // MariaDB JDBC 드라이버 사용
+    implementation 'org.mariadb.jdbc:mariadb-java-client:3.1.4'
+
+
+    // MyBatis
+    implementation 'org.mybatis.spring.boot:mybatis-spring-boot-starter:2.3.1'
+
+    // JPA
+    implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+
+
+    // Lombok
+    compileOnly 'org.projectlombok:lombok:1.18.34'
+    annotationProcessor 'org.projectlombok:lombok:1.18.34'
+
+    // Spring Security
+    implementation 'org.springframework.boot:spring-boot-starter-security'
+    implementation 'org.thymeleaf.extras:thymeleaf-extras-springsecurity5'
+
+
+    // Test
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    testImplementation 'org.springframework.security:spring-security-test'
+}
+
+bootRun {
+    systemProperty 'spring.devtools.restart.enabled', 'true'
+    systemProperty 'spring.devtools.livereload.enabled', 'true'
+    sourceResources sourceSets.main
+    jvmArgs = ['-XX:TieredStopAtLevel=1', '-noverify']
+}
+
+test {
+    useJUnitPlatform()
+}
+
+bootJar {
+    archiveFileName = "${archiveBaseName.get()}.${archiveExtension.get()}"
+}
+
+jar {
+    enabled = false
+}
