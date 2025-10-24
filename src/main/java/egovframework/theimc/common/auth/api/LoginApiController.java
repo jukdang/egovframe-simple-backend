@@ -1,4 +1,4 @@
-package egovframework.theimc.common.auth.controller;
+package egovframework.theimc.common.auth.api;
 
 import java.util.HashMap;
 
@@ -48,18 +48,18 @@ public class LoginApiController {
       log.debug("===>>> loginResponse.getName() = " + loginResponse.getName());
       log.debug("===>>> loginResponse.getId() = " + loginResponse.getId());
       log.debug("===>>> loginResponse.getRole() = " + loginResponse.getRole());
+
+      String token = loginResponse.getToken();
+      ResponseCookie cookie = ResponseCookie.from("JWT_TOKEN", token)
+          .httpOnly(true)
+          .secure(true)
+          .path("/")
+          .maxAge(jwtTokenUtil.getValidityFromToken(token)) // 1 hour
+          .sameSite("Strict") // None, Lax, Strict
+          .build();
+
+      response.addHeader(HttpHeaders.SET_COOKIE, cookie.toString());
     }
-
-    String token = loginResponse.getToken();
-    ResponseCookie cookie = ResponseCookie.from("JWT_TOKEN", token)
-        .httpOnly(true)
-        .secure(true)
-        .path("/")
-        .maxAge(jwtTokenUtil.getValidityFromToken(token)) // 1 hour
-        .sameSite("Strict") // None, Lax, Strict
-        .build();
-
-    response.addHeader(HttpHeaders.SET_COOKIE, cookie.toString());
 
     return loginResponse;
   }
