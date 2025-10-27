@@ -96,6 +96,7 @@ public class LoginApiController {
     HashMap<String, Object> data = new HashMap<>();
     data.put("id", jwtTokenUtil.getUserIdFromToken(token));
     data.put("exp", jwtTokenUtil.getExpFromToken(token));
+    data.put("role", jwtTokenUtil.getRoleFromToken(token));
 
     resultVO.setResultCode(HttpStatus.OK.value());
     resultVO.setResultMessage("success");

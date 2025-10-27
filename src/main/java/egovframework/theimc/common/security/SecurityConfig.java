@@ -59,7 +59,8 @@ public class SecurityConfig {
       "/",
       "/auth/**",
       "/api/**",
-      "test/default"
+      "/test/default",
+      "/ws/**"
   };
 
   @Value("${Globals.Allow.Origin}")
