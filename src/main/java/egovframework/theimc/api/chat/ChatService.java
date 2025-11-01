@@ -17,14 +17,14 @@ public class ChatService {
     return new ArrayList<>(chatRooms.values());
   }
 
-  public ChatRoom findRoomById(String roomId) {
-    return chatRooms.get(roomId);
+  public ChatRoom findRoomByName(String roomName) {
+    return chatRooms.get(roomName);
   }
 
   public ChatRoom createRoom(String name) {
     String roomId = UUID.randomUUID().toString();
     ChatRoom room = new ChatRoom(roomId, name, new HashSet<>());
-    chatRooms.put(roomId, room);
+    chatRooms.put(name, room);
     return room;
   }
 }

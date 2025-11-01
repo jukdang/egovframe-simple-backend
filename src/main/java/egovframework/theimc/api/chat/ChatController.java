@@ -35,6 +35,11 @@ public class ChatController {
     return chatService.findAllRooms();
   }
 
+  @GetMapping("/room/roomInfo")
+  public ChatRoom getRoomByName(@RequestParam String roomName) {
+      return chatService.findRoomByName(roomName);
+  }
+
   // --- 메시지 수신 ---
   @MessageMapping("/chat.send/{roomId}")
   @SendTo("/topic/room/{roomId}")
