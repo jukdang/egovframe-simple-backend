@@ -13,6 +13,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
 @RestController
 @RequestMapping("/api/chat")
 public class ChatController {
@@ -35,15 +38,16 @@ public class ChatController {
     return chatService.findAllRooms();
   }
 
-  @GetMapping("/room/roomInfo")
-  public ChatRoom getRoomByName(@RequestParam String roomName) {
-      return chatService.findRoomByName(roomName);
+  @GetMapping("/room/join")
+  public ChatRoom getRoomByName(@RequestParam(value = "name") String name) {
+      return chatService.findRoomByName(name);
   }
 
   // --- 메시지 수신 ---
   @MessageMapping("/chat.send/{roomId}")
   @SendTo("/topic/room/{roomId}")
   public void sendMessage(@DestinationVariable String roomId, ChatMessage message) {
+    log.info(message.toString());
     messagingTemplate.convertAndSend("/topic/room/" + roomId, message);
   }
 }
