@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import egovframework.theimc.api.user.model.RegisterRequest;
 import egovframework.theimc.api.user.service.UserService;
-import egovframework.theimc.common.model.ResultVO;
+import egovframework.theimc.common.model.ApiResponse;
 
 @RestController
 @RequestMapping("/api/users")
@@ -20,20 +20,26 @@ public class UserController {
   private UserService userService;
 
   @PostMapping("/register")
-  public ResponseEntity<ResultVO> register(@RequestBody RegisterRequest request) {
+  public ResponseEntity<ApiResponse> register(@RequestBody RegisterRequest request) {
 
-    ResultVO resultVO = userService.register(request);
-    HttpStatus status = resultVO.getResultCode() == 200 ? HttpStatus.CREATED : HttpStatus.CONFLICT;
-    return ResponseEntity.status(status).body(resultVO);
+    HttpStatus status = userService.register(request);
+    if (status == HttpStatus.OK) {
+      return ResponseEntity.ok(new ApiResponse<>(status, "회원가입이 완료되었습니다."));
+    } else {
+      return ResponseEntity.status(status).body(new ApiResponse<>(status, "이미 존재하는 아이디입니다."));
+    }
   }
 
   @PostMapping("/update")
-  public ResponseEntity<ResultVO> update(@RequestBody RegisterRequest request) {
+  public ResponseEntity<ApiResponse> update(@RequestBody RegisterRequest request) {
     // TODO: process POST request
 
-    ResultVO resultVO = userService.update(request);
-    HttpStatus status = resultVO.getResultCode() == 200 ? HttpStatus.OK : HttpStatus.CONFLICT;
-    return ResponseEntity.status(status).body(resultVO);
+    HttpStatus status = userService.update(request);
+    if (status == HttpStatus.OK) {
+      return ResponseEntity.ok(new ApiResponse<>(status, "회원정보가 수정되었습니다."));
+    } else {
+      return ResponseEntity.status(status).body(new ApiResponse<>(status, "회원정보 수정에 실패하였습니다."));
+    }
   }
 
 }

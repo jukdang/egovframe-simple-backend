@@ -2,13 +2,13 @@ package egovframework.theimc.api.user.service.impl;
 
 import org.egovframe.rte.fdl.cmmn.EgovAbstractServiceImpl;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 import egovframework.theimc.api.user.entity.User;
 import egovframework.theimc.api.user.model.RegisterRequest;
 import egovframework.theimc.api.user.repository.UserRepository;
 import egovframework.theimc.api.user.service.UserService;
-import egovframework.theimc.common.model.ResultVO;
 
 @Service("userService")
 public class UserServiceImpl extends EgovAbstractServiceImpl implements UserService {
@@ -17,13 +17,10 @@ public class UserServiceImpl extends EgovAbstractServiceImpl implements UserServ
   private UserRepository userRepository;
 
   @Override
-  public ResultVO register(RegisterRequest request) {
-    ResultVO result = new ResultVO();
+  public HttpStatus register(RegisterRequest request) {
 
     if (userRepository.existsById(request.getId())) {
-      result.setResultCode(409);
-      result.setResultMessage("이미 존재하는 아이디입니다.");
-      return result;
+      return HttpStatus.CONFLICT;
     }
 
     User user = new User();
@@ -36,18 +33,11 @@ public class UserServiceImpl extends EgovAbstractServiceImpl implements UserServ
 
     userRepository.save(user);
 
-    result.setResultCode(200);
-    result.setResultMessage("회원가입이 완료되었습니다.");
-    return result;
+    return HttpStatus.OK;
   }
 
   @Override
-  public ResultVO update(RegisterRequest request) {
-    ResultVO result = new ResultVO();
-
-    // do something
-
-    return result;
+  public HttpStatus update(RegisterRequest request) {
+    return HttpStatus.OK;
   }
-
 }

@@ -1,11 +1,11 @@
 package egovframework.theimc.api.user.service;
 
+import org.springframework.http.HttpStatus;
+
 import egovframework.theimc.api.user.model.RegisterRequest;
-import egovframework.theimc.common.model.ResultVO;
 
 public interface UserService {
+  HttpStatus register(RegisterRequest request);
 
-  ResultVO register(RegisterRequest request);
-
-  ResultVO update(RegisterRequest request);
+  HttpStatus update(RegisterRequest request);
 }
