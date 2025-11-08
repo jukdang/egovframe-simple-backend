@@ -12,6 +12,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.CacheControl;
 import org.springframework.web.servlet.HandlerExceptionResolver;
+import org.springframework.web.servlet.config.annotation.CorsRegistry;
 import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 import org.springframework.web.servlet.handler.SimpleMappingExceptionResolver;
@@ -93,6 +94,17 @@ public class EgovConfigWeb implements WebMvcConfigurer, ApplicationContextAware 
 		registry.addResourceHandler("/summernote-0.8.18-dist/**")
 				.addResourceLocations("classpath:/static/summernote-0.8.18-dist/")
 				.setCacheControl(CacheControl.maxAge(1, TimeUnit.DAYS));
+	}
+
+	@Override
+	public void addCorsMappings(CorsRegistry registry) {
+		registry.addMapping("/**")
+				.allowedOriginPatterns("*")
+				.allowedMethods("*")
+				.allowedHeaders("*")
+				.allowCredentials(true)
+				.exposedHeaders("Authorization", "Content-Type")
+				.maxAge(3600);
 	}
 
 	@Bean

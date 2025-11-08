@@ -1,7 +1,5 @@
 package egovframework.theimc.common.security;
 
-import static org.springframework.security.config.Customizer.withDefaults;
-
 import java.security.GeneralSecurityException;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -70,11 +68,12 @@ public class SecurityConfig {
   protected CorsConfigurationSource corsConfigurationSource() {
     CorsConfiguration configuration = new CorsConfiguration();
 
-    configuration.setAllowedOriginPatterns(Arrays.asList("*"));
-    configuration.setAllowedMethods(Arrays.asList("HEAD", "POST", "GET", "DELETE", "PUT", "PATCH"));
-    configuration.setAllowedOrigins(Arrays.asList(ORIGINS_WHITELIST));
-    configuration.setAllowedHeaders(Arrays.asList("*"));
-    configuration.setAllowCredentials(true);
+    configuration.setAllowedOriginPatterns(Arrays.asList("*")); // 모든 오리진 허용
+    configuration.setAllowedMethods(Arrays.asList("*")); // 모든 HTTP 메서드 허용
+    configuration.setAllowedHeaders(Arrays.asList("*")); // 모든 헤더 허용
+    configuration.setAllowCredentials(true); // 쿠키/인증 정보 허용
+    configuration.setExposedHeaders(Arrays.asList("*")); // 모든 응답 헤더 노출
+    configuration.setMaxAge(3600L); // preflight 캐시 1시간
 
     UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
     source.registerCorsConfiguration("/**", configuration);
@@ -143,7 +142,7 @@ public class SecurityConfig {
             .anyRequest().authenticated())
         .sessionManagement(
             (sessionManagement) -> sessionManagement.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-        .cors(withDefaults())
+        .cors(cors -> cors.configurationSource(corsConfigurationSource()))
         .addFilterBefore(authenticationTokenFilterBean(), UsernamePasswordAuthenticationFilter.class)
         .exceptionHandling(exceptionHandlingConfigurer -> exceptionHandlingConfigurer
             .authenticationEntryPoint(new JwtAuthenticationEntryPoint()))
