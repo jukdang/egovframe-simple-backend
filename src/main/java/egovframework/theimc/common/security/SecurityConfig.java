@@ -26,7 +26,8 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
-import egovframework.theimc.common.auth.jwt.JwtAuthenticationEntryPoint;
+import egovframework.theimc.common.auth.jwt.JwtAccessAuthenticationEntryPoint;
+import egovframework.theimc.common.auth.jwt.JwtAccessDeniedHandler;
 import egovframework.theimc.common.auth.jwt.JwtAuthenticationFilter;
 import egovframework.theimc.common.security.encoder.KisaSHA256PasswordEncoder;
 import lombok.extern.slf4j.Slf4j;
@@ -145,7 +146,8 @@ public class SecurityConfig {
         .cors(cors -> cors.configurationSource(corsConfigurationSource()))
         .addFilterBefore(authenticationTokenFilterBean(), UsernamePasswordAuthenticationFilter.class)
         .exceptionHandling(exceptionHandlingConfigurer -> exceptionHandlingConfigurer
-            .authenticationEntryPoint(new JwtAuthenticationEntryPoint()))
+            .authenticationEntryPoint(new JwtAccessAuthenticationEntryPoint())
+            .accessDeniedHandler(new JwtAccessDeniedHandler()))
         .build();
   }
 }

@@ -16,4 +16,5 @@ public class ChatRoom {
   private String roomId;
   private String name;
   private Set<String> users = new HashSet<>();
+  
 }
