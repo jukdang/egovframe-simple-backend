@@ -9,6 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseCookie;
+import org.springframework.http.ResponseEntity;
 import org.springframework.ui.ModelMap;
 import org.springframework.web.bind.annotation.CookieValue;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -22,7 +23,7 @@ import egovframework.theimc.common.auth.model.LoginRequest;
 import egovframework.theimc.common.auth.model.LoginResponse;
 import egovframework.theimc.common.auth.service.LoginService;
 import egovframework.theimc.common.interceptor.accessLog.AccessLog;
-import egovframework.theimc.common.model.ResultVO;
+import egovframework.theimc.common.model.ApiResponse;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
@@ -65,12 +66,12 @@ public class LoginApiController {
   }
 
   @PostMapping(value = "/logout")
-  public ResultVO actionLogoutJSON(HttpServletRequest request,
+  public ResponseEntity<ApiResponse> actionLogoutJSON(HttpServletRequest request,
       HttpServletResponse response) throws Exception {
 
-    ResultVO resultVO = new ResultVO();
-    resultVO.setResultCode(200);
-    resultVO.setResultMessage("로그아웃 되었습니다.");
+    ApiResponse res = new ApiResponse();
+    res.setCode(200);
+    res.setMessage("로그아웃 되었습니다.");
 
     ResponseCookie cookie = ResponseCookie.from("JWT_TOKEN", null)
         .httpOnly(true)
@@ -81,28 +82,28 @@ public class LoginApiController {
 
     response.addHeader(HttpHeaders.SET_COOKIE, cookie.toString());
 
-    return resultVO;
+    return ResponseEntity.ok().body(res);
   }
 
   @GetMapping("/me")
-  public ResultVO me(@CookieValue(name = "JWT_TOKEN", required = false) String token) {
-    ResultVO resultVO = new ResultVO();
+  public ResponseEntity<ApiResponse> me(@CookieValue(name = "JWT_TOKEN", required = false) String token) {
+    ApiResponse res = new ApiResponse();
 
     if (token == null || token.isBlank()) {
-      resultVO.setResultCode(HttpStatus.UNAUTHORIZED.value());
-      resultVO.setResultMessage("Invalid token");
-      return resultVO;
+      res.setCode(HttpStatus.UNAUTHORIZED.value());
+      res.setMessage("Invalid token");
+      return ResponseEntity.ok().body(res);
     }
     HashMap<String, Object> data = new HashMap<>();
     data.put("id", jwtTokenUtil.getUserIdFromToken(token));
     data.put("exp", jwtTokenUtil.getExpFromToken(token));
     data.put("role", jwtTokenUtil.getRoleFromToken(token));
 
-    resultVO.setResultCode(HttpStatus.OK.value());
-    resultVO.setResultMessage("success");
-    resultVO.setResult(data);
+    res.setCode(HttpStatus.OK.value());
+    res.setMessage("success");
+    res.setData(data);
 
-    return resultVO;
+    return ResponseEntity.ok().body(res);
   }
 
 }
