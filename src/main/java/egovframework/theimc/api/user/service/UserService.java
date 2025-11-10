@@ -2,10 +2,17 @@ package egovframework.theimc.api.user.service;
 
 import org.springframework.http.HttpStatus;
 
-import egovframework.theimc.api.user.model.RegisterRequest;
+import egovframework.theimc.api.user.model.UserDTO;
 
 public interface UserService {
-  HttpStatus register(RegisterRequest request);
 
-  HttpStatus update(RegisterRequest request);
+  boolean isIdAvailable(String id);
+
+  boolean isValidPassword(String id, String password);
+
+  UserDTO getUserById(String id);
+
+  HttpStatus register(UserDTO request);
+
+  HttpStatus update(UserDTO request);
 }

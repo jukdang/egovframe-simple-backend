@@ -28,8 +28,8 @@ import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @RestController
-@RequestMapping("/auth")
-public class LoginApiController {
+@RequestMapping("/api/auth")
+public class LoginRestController {
 
   @Autowired
   private LoginService loginService;

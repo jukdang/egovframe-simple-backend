@@ -16,8 +16,11 @@ public class passwordConverter implements AttributeConverter<String, String> {
 
   @Override
   public String convertToDatabaseColumn(String attribute) {
-    if (attribute == null) {
+    if (attribute == null || attribute.isEmpty()) {
       return null;
+    }
+    if (attribute.startsWith("{kisa-sha256}10000:")) {
+      return attribute;
     }
     return passwordEncoder.encode(attribute);
   }

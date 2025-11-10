@@ -50,4 +50,10 @@ public class User {
     @Column(name = "user_role")
     private String role;
 
+    @Column(name = "utztn_trms_agre_yn", nullable = false)
+    private String utztnTrmsAgreYn;
+
+    @Column(name = "prvc_clct_agre_yn", nullable = false)
+    private String prvcClctAgreYn;
+
 }

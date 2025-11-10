@@ -1,45 +1,37 @@
 package egovframework.theimc.api.user.controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
 
-import egovframework.theimc.api.user.model.RegisterRequest;
+import egovframework.theimc.api.user.model.UserDTO;
 import egovframework.theimc.api.user.service.UserService;
-import egovframework.theimc.common.model.ApiResponse;
+import egovframework.theimc.common.auth.model.JwtUserInfo;
 
-@RestController
-@RequestMapping("/api/users")
+@Controller
+@RequestMapping("/user")
 public class UserController {
 
   @Autowired
   private UserService userService;
 
-  @PostMapping("/register")
-  public ResponseEntity<ApiResponse> register(@RequestBody RegisterRequest request) {
-
-    HttpStatus status = userService.register(request);
-    if (status == HttpStatus.OK) {
-      return ResponseEntity.ok(new ApiResponse<>(status, "회원가입이 완료되었습니다."));
-    } else {
-      return ResponseEntity.status(status).body(new ApiResponse<>(status, "이미 존재하는 아이디입니다."));
-    }
+  @GetMapping("/profile/verifyPassword")
+  public String verifyPassword() {
+    return "mbr/verifyPasswordForm";
   }
 
-  @PostMapping("/update")
-  public ResponseEntity<ApiResponse> update(@RequestBody RegisterRequest request) {
-    // TODO: process POST request
+  @GetMapping("/profile/edit")
+  public String profileUpdateForm(Model model) {
+    JwtUserInfo jwtUserInfo = (JwtUserInfo) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+    String userId = jwtUserInfo.getName();
+    UserDTO user = userService.getUserById(userId);
 
-    HttpStatus status = userService.update(request);
-    if (status == HttpStatus.OK) {
-      return ResponseEntity.ok(new ApiResponse<>(status, "회원정보가 수정되었습니다."));
-    } else {
-      return ResponseEntity.status(status).body(new ApiResponse<>(status, "회원정보 수정에 실패하였습니다."));
-    }
+    model.addAttribute("user", user);
+
+    return "mbr/profileUpdateForm";
   }
 
 }
