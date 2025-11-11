@@ -1,6 +1,9 @@
 
 package egovframework.theimc.common.utils;
 
+import java.util.Map;
+
+import org.apache.commons.collections.MapUtils;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -20,5 +23,9 @@ public class StringUtil {
     }
 
     return string;
+  }
+
+  public static String getRequestString(Map<String, Object> map, String key) {
+    return MapUtils.getString(map, key, null);
   }
 }

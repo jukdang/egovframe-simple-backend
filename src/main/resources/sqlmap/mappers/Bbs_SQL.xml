@@ -1,0 +1,212 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="egovframework.theimc.api.bbs.service.impl.BbsMapper">
+    <!-- 게시글목록 -->
+    <select id="selectBbsList" resultType="egovMap">
+        SELECT
+            b.sn,
+            b.ttl AS title,
+            b.reg_dt as reg_dt,
+            b.reg_id as reg_id,
+            b.inq_cnt AS inq_cnt,
+            b.ctgry AS ctgry,
+            b.impt_yn AS impt_yn,
+            b.popup_pstg_yn AS popup_notice,
+            COALESCE(f.file_count, 0) AS file_count
+        FROM
+            svc_bbs b
+        LEFT JOIN (
+            SELECT
+                bbs_sn,
+                COUNT(*) AS file_count
+            FROM
+                svc_bbs_file
+            GROUP BY
+                bbs_sn
+        ) f ON b.sn = f.bbs_sn
+        WHERE 1=1 
+        <if test='ctgry != null and ctgry != "all"'>
+            AND ctgry = #{ctgry}
+        </if>
+        <if test="searchKeyword != null and searchKeyword != ''">
+            <choose>
+                <when test="searchType == 'ttl'">
+			            AND ttl LIKE CONCAT('%', #{searchKeyword}, '%')
+                </when>
+                <when test="searchType == 'cn'">
+			            AND cn LIKE CONCAT('%', #{searchKeyword}, '%')
+                </when>
+                <otherwise>
+			            AND (ttl LIKE CONCAT('%', #{searchKeyword}, '%') OR cn LIKE CONCAT('%', #{searchKeyword}, '%'))
+                </otherwise>
+            </choose>
+        </if>
+        
+        ORDER BY
+            CASE WHEN b.impt_yn = 'Y' THEN 0 ELSE 1 END,
+            b.sn DESC
+        LIMIT #{size} OFFSET #{offset}
+    </select>
+
+    <!-- 게시글건수 -->
+    <select id="selectBbsTotalCnt" resultType="int">
+        SELECT
+            COUNT(*)
+        FROM
+            svc_bbs b
+        WHERE 1=1 
+        <if test='ctgry != null and ctgry != "all"'>
+            AND ctgry = #{ctgry}
+        </if>
+        <if test="searchKeyword != null and searchKeyword != ''">
+            <choose>
+                <when test="searchType == 'ttl'">
+			            AND ttl LIKE CONCAT('%', #{searchKeyword}, '%')
+                </when>
+                <when test="searchType == 'cn'">
+			            AND cn LIKE CONCAT('%', #{searchKeyword}, '%')
+                </when>
+                <otherwise>
+			            AND (ttl LIKE CONCAT('%', #{searchKeyword}, '%') OR cn LIKE CONCAT('%', #{searchKeyword}, '%'))
+                </otherwise>
+            </choose>
+        </if>
+    </select>
+
+    <!-- 팝업게시글목록 -->
+    <select id="selectPopupBbsList" parameterType="hashMap" resultType="egovMap">
+        SELECT
+            *
+        FROM
+            svc_bbs
+        WHERE
+            popup_pstg_yn = 'Y'
+            AND CURDATE() BETWEEN popup_bgng_dt AND popup_en_dt
+        ORDER BY
+            sn DESC
+    </select>
+
+
+
+    <!-- 게시글업데이트 -->
+    <insert id="updateBbs" parameterType="hashMap">
+        INSERT INTO svc_bbs (
+            sn,
+            ctgry,
+            ttl,
+            cn,
+            reg_id,
+            mdfcn_id,
+            impt_yn,
+            popup_pstg_yn,
+            popup_bgng_dt,
+            popup_en_dt
+        ) VALUES (
+            #{sn},
+            #{ctgry},
+            #{ttl},
+            #{cn},
+            #{regId},
+            #{mdfcnId},
+            #{imptYn},
+            #{popupPstgYn},
+            #{popupBgngDt},
+            #{popupEnDt}
+        )
+        ON DUPLICATE KEY UPDATE
+            ctgry = VALUES(ctgry),
+            ttl = VALUES(ttl),
+            cn = VALUES(cn),
+            mdfcn_id = VALUES(mdfcn_id),
+            impt_yn = VALUES(impt_yn),
+            popup_pstg_yn = VALUES(popup_pstg_yn),
+            popup_bgng_dt = VALUES(popup_bgng_dt),
+            popup_en_dt = VALUES(popup_en_dt)
+    </insert>
+
+    <!-- 게시글 업데이트번호 -->
+    <select id="selectLastInsertId" resultType="int">
+        SELECT LAST_INSERT_ID()
+    </select>
+
+    <!-- 게시글 파일 정보 업데이트 -->
+    <insert id="insertUploadFileInfo" parameterType="hashMap">
+        INSERT INTO svc_bbs_file (
+            bbs_sn,
+            original_file_nm,
+            file_nm,
+            file_path,
+            file_size,
+            file_extension
+        ) VALUES (
+            #{boardSn},
+            #{originalFileNm},
+            #{fileNm},
+            #{filePath},
+            #{fileSize},
+            #{fileExtension}
+        )
+    </insert>
+
+    <!-- 게시글삭제 -->
+    <delete id="deleteBbs" parameterType="hashMap">
+        DELETE FROM svc_bbs WHERE sn = #{sn}
+    </delete>
+
+    <!-- 첨부파일 삭제 -->
+    <delete id="deleteUploadFileInfo" parameterType="hashMap">
+        <choose>
+            <when test="boardSn != null">
+                DELETE FROM svc_bbs_file
+                WHERE bbs_sn = #{boardSn}
+            </when>
+            <otherwise>
+                DELETE FROM svc_bbs_file
+                WHERE sn = #{sn}
+            </otherwise>
+        </choose>
+    </delete>
+
+    <!-- 게시글상세 -->
+    <select id="selectBbsDetail" resultType="egovMap">
+        SELECT 
+            sn,
+            ctgry,
+            ttl AS title,
+            cn AS content,
+            reg_id AS regId,
+            reg_dt AS regDt,
+            mdfcn_id AS mdfcnId,
+            mdfcn_dt AS mdfcnDt,
+            inq_cnt AS inqCnt,
+            impt_yn AS imptYn,
+            popup_pstg_yn AS popupPstgYn,
+            popup_bgng_dt AS popupBgngDt,
+            popup_en_dt AS popupEnDt
+        FROM svc_bbs
+        WHERE sn = #{sn}
+    </select>
+
+    <!-- 첨부파일 목록 -->
+    <select id="selectUploadFileList" parameterType="hashMap" resultType="egovMap">
+        SELECT 
+            *
+        FROM svc_bbs_file
+        WHERE bbs_sn = #{sn}
+    </select>
+
+    <!-- 첨부파일 상세 -->
+    <select id="selectUploadFileDetail" parameterType="hashMap" resultType="egovMap">
+        SELECT 
+            *
+        FROM svc_bbs_file
+        WHERE sn = #{sn}
+    </select>
+
+    <!-- 조회수 업데이트 -->
+    <update id="updateViewsCnt" parameterType="hashMap">
+        UPDATE svc_bbs SET 
+            inq_cnt = inq_cnt + 1
+        WHERE sn = #{sn}
+    </update>
+</mapper>

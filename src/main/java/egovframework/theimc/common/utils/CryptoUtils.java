@@ -4,6 +4,8 @@ import java.io.UnsupportedEncodingException;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.util.Base64;
+import java.util.HashMap;
+import java.util.List;
 
 import javax.annotation.PostConstruct;
 import javax.crypto.BadPaddingException;
@@ -12,6 +14,7 @@ import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
 import javax.crypto.spec.SecretKeySpec;
 
+import org.egovframe.rte.psl.dataaccess.util.EgovMap;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
@@ -190,5 +193,97 @@ public class CryptoUtils {
         }
 
         return null;
+    }
+
+    /**
+     * List<EgovMap>에서 모든 항목의 특정 키 값을 암호화하는 메서드
+     *
+     * @param mapList 처리할 EgovMap 리스트
+     * @param key     암호화할 값의 키
+     */
+    public static void encryptByKey(List<EgovMap> mapList, String key) {
+        if (mapList == null || key == null) {
+            return;
+        }
+
+        mapList.forEach(map -> {
+            encryptByKey(map, key);
+        });
+    }
+
+    /**
+     * EgovMap에서 특정 키의 값을 가져와 암호화하고 다시 설정하는 메서드
+     *
+     * @param map 처리할 EgovMap
+     * @param key 암호화할 값의 키
+     */
+    public static void encryptByKey(EgovMap map, String key) {
+        if (map == null || key == null || !map.containsKey(key)) {
+            return;
+        }
+
+        map.put(key, encrypt(StringUtil.isNullToString(map.get(key))));
+
+    }
+
+    /**
+     * HashMap에서 특정 키의 값을 가져와 암호화하고 다시 설정하는 메서드
+     *
+     * @param map 처리할 HashMap
+     * @param key 암호화할 값의 키
+     */
+    public static void encryptByKey(HashMap<String, Object> map, String key) {
+        if (map == null || key == null || !map.containsKey(key)) {
+            return;
+        }
+
+        map.put(key, encrypt(StringUtil.isNullToString(map.get(key))));
+
+    }
+
+    /**
+     * List<EgovMap>에서 모든 항목의 특정 키 값을 복호화하는 메서드
+     *
+     * @param mapList 처리할 EgovMap 리스트
+     * @param key     복호화할 값의 키
+     */
+    public static void decryptByKey(List<EgovMap> mapList, String key) {
+        if (mapList == null || key == null) {
+            return;
+        }
+
+        mapList.forEach(map -> {
+            decryptByKey(map, key);
+        });
+    }
+
+    /**
+     * EgovMap에서 특정 키의 값을 가져와 복호화하고 다시 설정하는 메서드
+     *
+     * @param map 처리할 EgovMap
+     * @param key 복호화할 값의 키
+     */
+    public static void decryptByKey(EgovMap map, String key) {
+        if (map == null || key == null || !map.containsKey(key)) {
+            return;
+        }
+
+        map.put(key, decrypt(StringUtil.isNullToString(map.get(key))));
+
+    }
+
+    /**
+     * HashMap에서 특정 키의 값을 가져와 복호화하고 다시 설정하는 메서드
+     *
+     * @param map 처리할 HashMap
+     * @param key 복호화할 값의 키
+     */
+    public static void decryptByKey(HashMap<String, Object> map, String key) {
+        if (map == null || key == null || !map.containsKey(key)) {
+            return;
+        }
+
+        map.put(key, decrypt(StringUtil.isNullToString(map.get(key))));
+
     }
 }

@@ -14,7 +14,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 
 @Configuration
-@MapperScan(basePackages = "egovframework.theimc.*.service.impl")
+@MapperScan(basePackages = "egovframework.theimc.**.service.impl")
 public class EgovConfigMapper {
 
 	@Bean
