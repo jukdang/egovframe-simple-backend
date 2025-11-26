@@ -13,10 +13,12 @@ import org.springframework.context.annotation.Import;
 import org.springframework.http.CacheControl;
 import org.springframework.web.servlet.HandlerExceptionResolver;
 import org.springframework.web.servlet.config.annotation.CorsRegistry;
+import org.springframework.web.servlet.config.annotation.ResourceChainRegistration;
 import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 import org.springframework.web.servlet.handler.SimpleMappingExceptionResolver;
 import org.springframework.web.servlet.i18n.SessionLocaleResolver;
+import org.springframework.web.servlet.resource.VersionResourceResolver;
 import org.thymeleaf.extras.springsecurity5.dialect.SpringSecurityDialect;
 import org.thymeleaf.spring5.SpringTemplateEngine;
 import org.thymeleaf.spring5.templateresolver.SpringResourceTemplateResolver;
@@ -45,6 +47,12 @@ public class EgovConfigWeb implements WebMvcConfigurer, ApplicationContextAware 
 
 	@Value("${spring.thymeleaf.cache}")
 	private boolean cacheable;
+
+	@Value("${spring.profiles.active:dev}")
+	private String activeProfile;
+
+	@Value("${file.upload.dir}")
+	private String uploadPath;
 
 	@Bean
 	public SpringResourceTemplateResolver templateResolver() {
@@ -79,21 +87,43 @@ public class EgovConfigWeb implements WebMvcConfigurer, ApplicationContextAware 
 
 	@Override
 	public void addResourceHandlers(ResourceHandlerRegistry registry) {
-		registry.addResourceHandler("/css/egovframework/**")
+		// activeProfile에 따라 정적 자원 캐시 설정
+		boolean cacheable = "prod".equals(activeProfile);
+
+		Integer cacheDays = cacheable ? 7 : 0; // 개발: 캐시 없음, 배포: 7일
+		CacheControl cacheControl = CacheControl.maxAge(cacheDays, TimeUnit.DAYS);
+
+		ResourceChainRegistration chain = registry.addResourceHandler("/css/egovframework/**")
 				.addResourceLocations("classpath:/static/css/egovframework/")
-				.setCacheControl(CacheControl.maxAge(1, TimeUnit.DAYS))
+				.setCacheControl(cacheControl)
 				.resourceChain(true);
-		registry.addResourceHandler("/js/egovframework/**")
+		if (cacheable)
+			chain.addResolver(new VersionResourceResolver().addContentVersionStrategy("/**"));
+
+		chain = registry.addResourceHandler("/js/egovframework/**")
 				.addResourceLocations("classpath:/static/js/egovframework/")
-				.setCacheControl(CacheControl.maxAge(1, TimeUnit.DAYS))
+				.setCacheControl(cacheControl)
 				.resourceChain(true);
-		registry.addResourceHandler("/images/egovframework/**")
+		if (cacheable)
+			chain.addResolver(new VersionResourceResolver().addContentVersionStrategy("/**"));
+
+		chain = registry.addResourceHandler("/images/egovframework/**")
 				.addResourceLocations("classpath:/static/images/egovframework/")
-				.setCacheControl(CacheControl.maxAge(1, TimeUnit.DAYS))
+				.setCacheControl(cacheControl)
 				.resourceChain(true);
-		registry.addResourceHandler("/summernote-0.8.18-dist/**")
+		if (cacheable)
+			chain.addResolver(new VersionResourceResolver().addContentVersionStrategy("/**"));
+
+		chain = registry.addResourceHandler("/summernote-0.8.18-dist/**")
 				.addResourceLocations("classpath:/static/summernote-0.8.18-dist/")
-				.setCacheControl(CacheControl.maxAge(1, TimeUnit.DAYS));
+				.setCacheControl(cacheControl)
+				.resourceChain(true);
+		if (cacheable)
+			chain.addResolver(new VersionResourceResolver().addContentVersionStrategy("/**"));
+
+		registry.addResourceHandler("/uploads/**")
+				.addResourceLocations("file:///" + uploadPath)
+				.setCacheControl(cacheControl);
 	}
 
 	@Override

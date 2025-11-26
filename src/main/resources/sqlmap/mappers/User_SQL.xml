@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="egovframework.theimc.api.user.service.impl.UserMapper">
+
+  <select id="selectUserById" resultType="User">
+    SELECT 
+      sn AS sn,
+      user_id AS id,
+      pswd AS password,
+      user_nm AS name,
+      tel_no AS telNo,
+      email AS email,
+      user_role AS role
+    FROM users 
+    WHERE user_id = #{id}
+  </select>
+
+  <insert id="insertUser" parameterType="User">
+    INSERT INTO users (
+      user_id,
+      pswd,
+      user_nm,
+      tel_no,
+      email,
+      user_role,
+      utztn_trms_agre_yn,
+      prvc_clct_agre_yn
+    ) VALUES (
+      #{id},
+      #{password},
+      #{name},
+      #{telNo},
+      #{email},
+      #{role},
+      #{utztnTrmsAgreYn},
+      #{prvcClctAgreYn}
+    )
+  </insert>
+
+
+  <select id="existUserById" resultType="boolean">
+    SELECT EXISTS(SELECT 1 FROM users WHERE user_id = #{id});
+  </select>
+
+  <update id="updateUser" parameterType="User">
+    UPDATE users SET
+      pswd = #{password},
+      user_nm = #{name},
+      tel_no = #{telNo},
+      email = #{email},
+      user_role = #{role}
+    WHERE user_id = #{id}
+  </update>
+
+
+
+</mapper>
+  

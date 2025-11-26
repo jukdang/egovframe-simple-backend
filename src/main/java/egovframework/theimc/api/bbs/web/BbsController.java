@@ -39,7 +39,7 @@ import egovframework.theimc.common.utils.StringUtil;
 @RequestMapping(value = "/api/bbs")
 public class BbsController {
 
-	@Value("${file.upload-dir}")
+	@Value("${file.upload.dir}")
 	private String uploadDir;
 
 	@Autowired

@@ -7,10 +7,12 @@ import org.springframework.stereotype.Service;
 
 import egovframework.theimc.api.user.entity.User;
 import egovframework.theimc.api.user.repository.UserRepository;
+import egovframework.theimc.api.user.service.impl.UserMapper;
 import egovframework.theimc.common.auth.jwt.JwtTokenUtil;
 import egovframework.theimc.common.auth.model.LoginRequest;
 import egovframework.theimc.common.auth.model.LoginResponse;
 import egovframework.theimc.common.auth.service.LoginService;
+import egovframework.theimc.common.utils.CryptoUtils;
 
 @Service("loginService")
 public class LoginServiceImpl extends EgovAbstractServiceImpl implements LoginService {
@@ -24,6 +26,9 @@ public class LoginServiceImpl extends EgovAbstractServiceImpl implements LoginSe
   @Autowired
   JwtTokenUtil jwtTokenUtil;
 
+  @Autowired
+  private UserMapper userMapper;
+
   /**
    * 일반 로그인을 처리한다
    * 
@@ -34,14 +39,33 @@ public class LoginServiceImpl extends EgovAbstractServiceImpl implements LoginSe
   @Override
   public LoginResponse actionLogin(LoginRequest vo) throws Exception {
 
-    User user = userRepository.findById(vo.getId());
+    // User user = userRepository.findById(vo.getId());
+    User user = userMapper.selectUserById(vo.getId());
 
     if (user != null && !user.getId().equals("")) {
       boolean passwordMatch = passwordEncoder.matches(vo.getPassword(), user.getPassword());
       if (passwordMatch) {
-        String jwtToken = jwtTokenUtil.generateToken(user, vo.isRememberMe());
-        return new LoginResponse(user, jwtToken);
+        user.setName(CryptoUtils.decrypt(user.getName()));
+        user.setEmail(CryptoUtils.decrypt(user.getEmail()));
+        user.setTelNo(CryptoUtils.decrypt(user.getTelNo()));
+
+        String jwtAccessToken = jwtTokenUtil.generateAccessToken(user);
+        String jwtRefreshToken = jwtTokenUtil.generateRefreshToken(user, vo.isRememberMe());
+        return new LoginResponse(user, jwtAccessToken, jwtRefreshToken);
       }
+    }
+
+    return new LoginResponse();
+  }
+
+  @Override
+  public LoginResponse refreshLogin(String refreshToken) throws Exception {
+    String userId = jwtTokenUtil.getUserIdFromToken(refreshToken);
+    User user = userMapper.selectUserById(userId);
+
+    if (user != null && !user.getId().equals("")) {
+      String jwtAccessToken = jwtTokenUtil.generateAccessToken(user);
+      return new LoginResponse(user, jwtAccessToken, refreshToken);
     }
 
     return new LoginResponse();

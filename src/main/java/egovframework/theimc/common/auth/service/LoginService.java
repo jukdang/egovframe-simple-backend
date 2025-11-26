@@ -14,6 +14,8 @@ public interface LoginService {
    */
   public LoginResponse actionLogin(LoginRequest vo) throws Exception;
 
+  public LoginResponse refreshLogin(String refreshToken) throws Exception;
+
   // /**
   // * 아이디를 찾는다.
   // *

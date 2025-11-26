@@ -10,26 +10,26 @@ import org.springframework.stereotype.Service;
 
 import egovframework.theimc.api.user.entity.User;
 import egovframework.theimc.api.user.model.UserDTO;
-import egovframework.theimc.api.user.repository.UserRepository;
 import egovframework.theimc.api.user.service.UserService;
+import egovframework.theimc.common.utils.CryptoUtils;
 
 @Service("userService")
 public class UserServiceImpl extends EgovAbstractServiceImpl implements UserService {
 
   @Autowired
-  private UserRepository userRepository;
+  private UserMapper userMapper;
 
   @Autowired
   private PasswordEncoder passwordEncoder;
 
   @Override
   public boolean isIdAvailable(String id) {
-    return !userRepository.existsById(id);
+    return !userMapper.existUserById(id);
   }
 
   @Override
   public boolean isValidPassword(String id, String password) {
-    User user = userRepository.findById(id);
+    User user = userMapper.selectUserById(id);
 
     if (user != null && !user.getId().equals("")) {
       boolean passwordMatch = passwordEncoder.matches(password, user.getPassword());
@@ -40,13 +40,13 @@ public class UserServiceImpl extends EgovAbstractServiceImpl implements UserServ
 
   @Override
   public UserDTO getUserById(String id) {
-    User user = userRepository.findById(id);
+    User user = userMapper.selectUserById(id);
     if (user != null) {
       UserDTO userDTO = new UserDTO();
       userDTO.setId(user.getId());
-      userDTO.setName(user.getName());
-      userDTO.setEmail(user.getEmail());
-      userDTO.setTelNo(user.getTelNo());
+      userDTO.setName(CryptoUtils.decrypt(user.getName()));
+      userDTO.setEmail(CryptoUtils.decrypt(user.getEmail()));
+      userDTO.setTelNo(CryptoUtils.decrypt(user.getTelNo()));
       return userDTO;
     }
     return null;
@@ -56,21 +56,23 @@ public class UserServiceImpl extends EgovAbstractServiceImpl implements UserServ
   @Override
   public HttpStatus register(UserDTO request) {
 
-    if (userRepository.existsById(request.getId())) {
+    if (userMapper.existUserById(request.getId())) {
       return HttpStatus.CONFLICT;
     }
 
     User user = new User();
     user.setId(request.getId());
-    user.setPassword(request.getPassword());
-    user.setName(request.getName());
-    user.setEmail(request.getEmail());
-    user.setTelNo(request.getTelNo());
+    user.setPassword(passwordEncoder.encode(request.getPassword()));
+    user.setName(CryptoUtils.encrypt(request.getName()));
+    user.setEmail(CryptoUtils.encrypt(request.getEmail()));
+    user.setTelNo(CryptoUtils.encrypt(request.getTelNo()));
     user.setRole("ROLE_USER");
     user.setUtztnTrmsAgreYn(request.getUtztnTrmsAgreYn());
     user.setPrvcClctAgreYn(request.getPrvcClctAgreYn());
 
-    userRepository.save(user);
+    // userRepository.save(user);
+
+    userMapper.insertUser(user);
 
     return HttpStatus.OK;
   }
@@ -78,18 +80,20 @@ public class UserServiceImpl extends EgovAbstractServiceImpl implements UserServ
   @Transactional
   @Override
   public HttpStatus update(UserDTO request) {
-    User user = userRepository.findById(request.getId());
+    User user = userMapper.selectUserById(request.getId());
     if (user == null) {
       return HttpStatus.NOT_FOUND;
     }
-    user.setName(request.getName());
-    user.setEmail(request.getEmail());
-    user.setTelNo(request.getTelNo());
+    user.setName(CryptoUtils.encrypt(request.getName()));
+    user.setEmail(CryptoUtils.encrypt(request.getEmail()));
+    user.setTelNo(CryptoUtils.encrypt(request.getTelNo()));
     if (request.getPassword() != null && !request.getPassword().isEmpty() && !request.getPassword().equals("")) {
-      user.setPassword(request.getPassword());
+      user.setPassword(passwordEncoder.encode(request.getPassword()));
     }
-    userRepository.save(user);
+    // userRepository.save(user);
+    userMapper.updateUser(user);
 
     return HttpStatus.OK;
   }
+
 }

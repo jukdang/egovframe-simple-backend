@@ -5,7 +5,6 @@ import java.util.Arrays;
 
 import javax.servlet.FilterChain;
 import javax.servlet.ServletException;
-import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
@@ -65,15 +64,11 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
         // step 1. request header에서 토큰을 가져온다.
         String token = null;
-        Cookie[] cookies = req.getCookies();
-        if (cookies != null) {
-            for (Cookie cookie : cookies) {
-                if ("JWT_TOKEN".equals(cookie.getName())) {
-                    token = cookie.getValue();
-                    break;
-                }
-            }
+        String authHeader = req.getHeader("Authorization");
+        if (authHeader != null && authHeader.startsWith("Bearer ")) {
+            token = authHeader.substring(7);
         }
+
         String jwtToken = StringUtil.isNullToString(token);
 
         // step 2. 토큰에 내용이 있는지 확인해서 id값을 가져옴

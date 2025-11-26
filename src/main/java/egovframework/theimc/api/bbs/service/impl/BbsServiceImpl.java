@@ -27,7 +27,7 @@ import egovframework.theimc.common.utils.StringUtil;
 @Service("BbsService")
 public class BbsServiceImpl implements BbsService {
 
-	@Value("${file.upload-dir}")
+	@Value("${file.upload.dir}")
 	private String uploadDir;
 
 	@Autowired

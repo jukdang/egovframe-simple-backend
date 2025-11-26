@@ -1,10 +1,11 @@
 package egovframework.theimc.common.auth.api;
 
-import java.util.HashMap;
+import java.util.UUID;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.egovframe.rte.psl.dataaccess.util.EgovMap;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -18,6 +19,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import egovframework.theimc.api.user.entity.User;
 import egovframework.theimc.common.auth.jwt.JwtTokenUtil;
 import egovframework.theimc.common.auth.model.LoginRequest;
 import egovframework.theimc.common.auth.model.LoginResponse;
@@ -39,7 +41,7 @@ public class LoginRestController {
 
   @AccessLog(svcName = "로그인", description = "로그인 API 요청")
   @PostMapping(value = "/login")
-  public LoginResponse actionLoginJWT(@RequestBody LoginRequest loginVO, HttpServletRequest request,
+  public ResponseEntity<ApiResponse> actionLoginJWT(@RequestBody LoginRequest loginVO, HttpServletRequest request,
       HttpServletResponse response, ModelMap model) throws Exception {
 
     LoginResponse loginResponse = loginService.actionLogin(loginVO);
@@ -50,19 +52,25 @@ public class LoginRestController {
       log.debug("===>>> loginResponse.getId() = " + loginResponse.getId());
       log.debug("===>>> loginResponse.getRole() = " + loginResponse.getRole());
 
-      String token = loginResponse.getToken();
-      ResponseCookie cookie = ResponseCookie.from("JWT_TOKEN", token)
+      String token = loginResponse.getRefreshToken();
+      ResponseCookie cookie = ResponseCookie.from("JWT_REFRESH_TOKEN", token)
           .httpOnly(true)
           .secure(true)
           .path("/")
-          .maxAge(jwtTokenUtil.getValidityFromToken(token)) // 1 hour
+          .maxAge(jwtTokenUtil.getValidityFromToken(token))
           .sameSite("Strict") // None, Lax, Strict
           .build();
 
       response.addHeader(HttpHeaders.SET_COOKIE, cookie.toString());
+
+      EgovMap data = new EgovMap();
+      data.put("accessToken", loginResponse.getAccessToken());
+      return ResponseEntity.ok().body(ApiResponse.success("로그인 성공", data));
+    } else {
+      return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+          .body(ApiResponse.error(HttpStatus.UNAUTHORIZED, "아이디 또는 비밀번호가 일치하지 않습니다."));
     }
 
-    return loginResponse;
   }
 
   @PostMapping(value = "/logout")
@@ -73,7 +81,7 @@ public class LoginRestController {
     res.setCode(200);
     res.setMessage("로그아웃 되었습니다.");
 
-    ResponseCookie cookie = ResponseCookie.from("JWT_TOKEN", null)
+    ResponseCookie cookie = ResponseCookie.from("JWT_REFRESH_TOKEN", null)
         .httpOnly(true)
         .secure(true)
         .path("/")
@@ -85,25 +93,33 @@ public class LoginRestController {
     return ResponseEntity.ok().body(res);
   }
 
-  @GetMapping("/me")
-  public ResponseEntity<ApiResponse> me(@CookieValue(name = "JWT_TOKEN", required = false) String token) {
-    ApiResponse res = new ApiResponse();
+  @GetMapping("/refresh")
+  public ResponseEntity<ApiResponse> refresh(
+      @CookieValue(name = "JWT_REFRESH_TOKEN", required = false) String refreshToken) throws Exception {
 
-    if (token == null || token.isBlank()) {
-      res.setCode(HttpStatus.UNAUTHORIZED.value());
-      res.setMessage("Invalid token");
-      return ResponseEntity.ok().body(res);
+    if (refreshToken == null || refreshToken.isBlank()) {
+
+      String guestUUID = UUID.randomUUID().toString();
+      User guest = User.builder()
+          .id("guest_" + guestUUID)
+          .name("guest_" + guestUUID)
+          .role("ROLE_ANONYMOUS")
+          .build();
+      String guestToken = jwtTokenUtil.generateAccessToken(guest);
+
+      EgovMap data = new EgovMap();
+      data.put("accessToken", guestToken);
+      return ResponseEntity.ok().body(ApiResponse.success("Guest 사용자", data));
     }
-    HashMap<String, Object> data = new HashMap<>();
-    data.put("id", jwtTokenUtil.getUserIdFromToken(token));
-    data.put("exp", jwtTokenUtil.getExpFromToken(token));
-    data.put("role", jwtTokenUtil.getRoleFromToken(token));
 
-    res.setCode(HttpStatus.OK.value());
-    res.setMessage("success");
-    res.setData(data);
-
-    return ResponseEntity.ok().body(res);
+    LoginResponse loginResponse = loginService.refreshLogin(refreshToken);
+    if (loginResponse == null || loginResponse.getId() == null || loginResponse.getId().isBlank()) {
+      return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+          .body(ApiResponse.error(HttpStatus.UNAUTHORIZED, "Invalid token"));
+    }
+    EgovMap data = new EgovMap();
+    data.put("accessToken", loginResponse.getAccessToken());
+    return ResponseEntity.ok().body(ApiResponse.success("토큰 재발급 성공", data));
   }
 
 }

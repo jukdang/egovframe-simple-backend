@@ -1,16 +1,14 @@
 package egovframework.theimc.api.user.entity;
 
 import javax.persistence.Column;
-import javax.persistence.Convert;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.Table;
 
-import egovframework.theimc.common.Converter.EncryptConverter;
-import egovframework.theimc.common.Converter.passwordConverter;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -21,6 +19,7 @@ import lombok.Setter;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
+@Builder
 public class User {
 
     @Id
@@ -32,19 +31,19 @@ public class User {
     private String id;
 
     @Column(name = "pswd", nullable = false)
-    @Convert(converter = passwordConverter.class)
+    // @Convert(converter = passwordConverter.class)
     private String password;
 
     @Column(name = "user_nm", nullable = false)
-    @Convert(converter = EncryptConverter.class)
+    // @Convert(converter = EncryptConverter.class)
     private String name;
 
     @Column(name = "tel_no", nullable = false)
-    @Convert(converter = EncryptConverter.class)
+    // @Convert(converter = EncryptConverter.class)
     private String telNo;
 
     @Column(name = "email", nullable = false)
-    @Convert(converter = EncryptConverter.class)
+    // @Convert(converter = EncryptConverter.class)
     private String email;
 
     @Column(name = "user_role")

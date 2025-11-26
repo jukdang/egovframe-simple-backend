@@ -10,17 +10,19 @@ public class LoginResponse {
   private String name;
   private String role;
 
-  private String token;
+  private String accessToken;
+  private String refreshToken;
 
   private String resultCode;
   private String resultMessage;
 
-  public LoginResponse(User user, String token) {
+  public LoginResponse(User user, String accessToken, String refreshToken) {
     this.id = user.getId();
     this.name = user.getName();
     this.role = user.getRole();
 
-    this.token = token;
+    this.accessToken = accessToken;
+    this.refreshToken = refreshToken;
 
     this.resultCode = "200";
     this.resultMessage = "로그인 성공";
@@ -31,7 +33,8 @@ public class LoginResponse {
     this.name = "";
     this.role = "";
 
-    this.token = "";
+    this.accessToken = "";
+    this.refreshToken = "";
 
     this.resultCode = "401";
     this.resultMessage = "아이디 또는 비밀번호가 일치하지 않습니다.";
